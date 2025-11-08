@@ -69,6 +69,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'ip_tracking_project.urls'
 
+# Rate limiting configuration
+RATELIMIT_VIEW = 'ip_tracking.views.rate_limit_exceeded'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
