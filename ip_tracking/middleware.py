@@ -1,10 +1,15 @@
-from .models import RequestLog
+from django.http import HttpResponseForbidden
+from .models import RequestLog, BlockedIP
 
 class IPLoggingMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
     
     def __call__(self, request):
+        # Check if IP is blocked BEFORE processing the request
+        if self.is_ip_blocked(request):
+            return HttpResponseForbidden("IP address blocked")
+        
         # Process the request and get the response
         response = self.get_response(request)
         
@@ -12,6 +17,16 @@ class IPLoggingMiddleware:
         self.log_request(request)
         
         return response
+    
+    def is_ip_blocked(self, request):
+        """Check if the client IP is in the blocked list"""
+        try:
+            ip_address = self.get_client_ip(request)
+            return BlockedIP.objects.filter(ip_address=ip_address).exists()
+        except Exception as e:
+            # If there's an error checking, allow the request (fail open)
+            print(f"Error checking IP block: {e}")
+            return False
     
     def log_request(self, request):
         """Extract and log IP address, timestamp, and path"""
