@@ -1,6 +1,9 @@
 from django.http import JsonResponse
 from .models import RequestLog
 from .rate_limits import rate_limit_authenticated, rate_limit_by_group
+from .models import SuspiciousIP
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login
 
 
 def home(request):
@@ -179,4 +182,26 @@ def low_limit_sensitive(request):
     return JsonResponse({
         'message': 'Sensitive endpoint',
         'rate_limit': '10 requests per minute'
+    })
+
+
+def suspicious_ips_view(request):
+    """View to see currently suspicious IPs"""
+    suspicious_ips = SuspiciousIP.objects.filter(is_resolved=False)
+    
+    ip_data = [
+        {
+            'ip_address': ip.ip_address,
+            'reason': ip.reason,
+            'reason_display': ip.get_reason_display(),
+            'description': ip.description,
+            'request_count': ip.request_count,
+            'detected_at': str(ip.detected_at),
+        }
+        for ip in suspicious_ips
+    ]
+    
+    return JsonResponse({
+        'suspicious_ips': ip_data,
+        'total_count': suspicious_ips.count()
     })

@@ -37,8 +37,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_results',
     'ip_tracking',
 ]
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# Anomaly Detection Settings
+ANOMALY_DETECTION = {
+    'REQUESTS_PER_HOUR_THRESHOLD': 100,
+    'SENSITIVE_PATHS': ['/admin', '/login', '/sensitive', '/api'],
+    'CHECK_INTERVAL_HOURS': 1,
+}
 
 # IP Geolocation Settings
 IPGEOLOCATION_SETTINGS = {
@@ -141,3 +157,19 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Celery Beat Schedule
+CELERY_BEAT_SCHEDULE = {
+    'detect-suspicious-ips-hourly': {
+        'task': 'ip_tracking.tasks.detect_suspicious_ips',
+        'schedule': crontab(minute=0),  # Run every hour at :00
+    },
+    'auto-block-repeat-offenders-daily': {
+        'task': 'ip_tracking.tasks.auto_block_suspicious_ips',
+        'schedule': crontab(hour=2, minute=0),  # Run daily at 2:00 AM
+    },
+    'cleanup-old-records-weekly': {
+        'task': 'ip_tracking.tasks.cleanup_old_suspicious_ips',
+        'schedule': crontab(day_of_week=0, hour=3, minute=0),  # Run weekly on Sunday at 3:00 AM
+    },
+}

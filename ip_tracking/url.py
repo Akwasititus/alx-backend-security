@@ -16,4 +16,6 @@ urlpatterns = [
     path('high-api/', views.high_limit_api, name='high_api'),
     path('low-sensitive/', views.low_limit_sensitive, name='low_sensitive'),
 
+    path('suspicious-ips/', views.suspicious_ips_view, name='suspicious_ips'),
+
 ]
