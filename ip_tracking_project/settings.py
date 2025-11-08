@@ -40,6 +40,22 @@ INSTALLED_APPS = [
     'ip_tracking',
 ]
 
+# IP Geolocation Settings
+IPGEOLOCATION_SETTINGS = {
+    'BACKEND': 'django_ipgeolocation.backends.IPGeolocationAPI',
+    'BACKEND_API_KEY': '',  # We'll use the free tier which doesn't require API key
+    'BACKEND_TIMEOUT': 5,  # Timeout in seconds
+    'BACKEND_CACHE_TTL': 86400,  # Cache for 24 hours (in seconds)
+}
+
+# Cache configuration (using database cache for simplicity)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache_table',
+    }
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
